@@ -14,7 +14,7 @@ public class Guess {
                 break;
             } else if (number > inputNumber) {
                 System.out.println("Мое число больше! У тебя осталось "+ (i - 1) +" попыток");
-            } else if (number < inputNumber) {
+            } else {
                 System.out.println("Мое число меньше! У тебя осталось "+ (i - 1) +" попыток");
             }
             if ((i - 1) == 0) {
