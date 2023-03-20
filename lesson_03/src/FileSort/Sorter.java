@@ -22,8 +22,8 @@ public class Sorter {
 
     /**
      * Сортировка слиянием массивов в памяти
-     * @param arr
-     * @return
+     * @param arr - массив, требующий сортировки
+     * @return - отсортированный массив
      */
     private long[] mergeSort(long[] arr){
         if (arr.length == 1 || arr.length == 0) {
@@ -61,9 +61,9 @@ public class Sorter {
 
     /**
      * Получение фрагмента файла для сортировки
-     * @param scanner
-     * @param chunkLength
-     * @return
+     * @param scanner - сканнер с открытым файлом
+     * @param chunkLength - длина считываемого блока данных (количество элементов сортировки)
+     * @return - массив данных, предназначенных для сортировки
      */
     private long[] getChunk(Scanner scanner, int chunkLength){
         long[] arr = new long[chunkLength];
@@ -80,12 +80,11 @@ public class Sorter {
 
     /**
      * Сохранение отсортированного массива в промежуточном файле
-     * @param chunkArr
-     * @param chunkNumber
-     * @return
+     * @param chunkArr - отсортированный массив для записи во временный файл
+     * @param chunkNumber - номер временного файла
      * @throws IOException
      */
-    private boolean saveChunk(long[] chunkArr, int chunkNumber) throws IOException {
+    private void saveChunk(long[] chunkArr, int chunkNumber) throws IOException {
         File file = new File("chunk" + chunkNumber + ".txt");
         try (PrintWriter pw = new PrintWriter(file)) {
             for (int i = 0; i < chunkArr.length; i++) {
@@ -93,17 +92,16 @@ public class Sorter {
             }
             pw.flush();
         }
-        return true;
     }
 
     /**
      * Слияние промежуточных файлов с последующим их удалением
-     * @param chunkCount
-     * @return
+     * @param chunkCount - количество промежуточных файлов
+     * @return - собранный отсортированный файл
      * @throws IOException
      */
     private File mergeFiles(int chunkCount)  throws IOException  {
-        TreeMap<Long, Integer> heap = new TreeMap<>(); // куча для слияния отсортированных файлов
+        SortedMap<Long, Integer> heap = new TreeMap<>(); // куча для слияния отсортированных файлов
         File[] chunkFiles = new File[chunkCount]; // отсортированные файлы
         Scanner[] chunkScanners = new Scanner[chunkCount]; // сканеры файлов
         for (int i = 0; i < chunkCount; i++) {
