@@ -24,8 +24,8 @@ import javax.sql.DataSource;
  */
 public class PersonApiImpl implements PersonApi {
   private final String EXCHANGE_NAME = "exc";
+  private final String QUEUE_NAME = "queue";
   private final String DIRECT_KEY = "direct";
-
   private final String ACTION_DELETE = "delete";
 
   private final String ACTION_SAVE = "save";
@@ -105,6 +105,8 @@ public class PersonApiImpl implements PersonApi {
          Channel channel = connection.createChannel()) {
 
       channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
+      channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+      channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, DIRECT_KEY);
 
       // Далее код публикации сообщений
       channel.basicPublish(EXCHANGE_NAME, DIRECT_KEY, null, message.getBytes());
