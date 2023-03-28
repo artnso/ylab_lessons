@@ -1,9 +1,7 @@
 package io.ylab.intensive.lesson04.eventsourcing.db;
 
+import java.sql.*;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -87,11 +85,11 @@ public class DbApp {
     String query = "delete from person where person_id = ?;";
     try {
       if (!containsPerson(dataSource, Id)) {
-        Logger.getAnonymousLogger().log(Level.INFO, "Try to delete person. Person with id = " + Id.toString() + " not found");
+        Logger.getAnonymousLogger().log(Level.INFO, "Try to delete person. Person with id = " + Id + " not found");
         return;
       }
       executeQuery(dataSource, Operations.DELETE, query, Id.toString());
-      Logger.getAnonymousLogger().log(Level.INFO, "Person with id = " + Id.toString() + " deleted");
+      Logger.getAnonymousLogger().log(Level.INFO, "Person with id = " + Id + " deleted");
     } catch (SQLException ex) {
       Logger.getAnonymousLogger().log(Level.WARNING, ex.getMessage());
     }
@@ -141,7 +139,11 @@ public class DbApp {
           if (i == args.length - 1) {
             preparedStatement.setLong(i+1, Long.parseLong(args[i]));
           } else {
-            preparedStatement.setString(i+1, args[i]);
+            if (args[i] == null) {
+              preparedStatement.setNull(i+1, Types.VARCHAR);
+            } else {
+              preparedStatement.setString(i+1, args[i]);
+            }
           }
         }
       }
