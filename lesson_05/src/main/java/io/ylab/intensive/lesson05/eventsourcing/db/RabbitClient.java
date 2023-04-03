@@ -14,19 +14,18 @@ import java.util.logging.Logger;
 @Component
 public class RabbitClient {
     private final ConnectionFactory connectionFactory;
-    private final DbClient dbClient;
     private final String EXCHANGE_NAME = "exc";
     private final String QUEUE_NAME = "queue";
     private final String DIRECT_KEY = "direct";
     private final Logger LOG = Logger.getAnonymousLogger();
 
     @Autowired
-    public RabbitClient(ConnectionFactory connectionFactory, DbClient dbClient) {
+    public RabbitClient(ConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory;
-        this.dbClient = dbClient;
     }
 
-    public void processSingleMessage(){
+    public Message getSingleMessage() {
+        Message message = null;
         try (Connection connection = connectionFactory.newConnection();
              Channel channel = connection.createChannel()){
 
@@ -37,21 +36,15 @@ public class RabbitClient {
             GetResponse response = channel.basicGet(QUEUE_NAME, true);
             if (response != null) {
                 String json = new String(response.getBody());
-                Message message = new ObjectMapper().readValue(json, Message.class);
-                if (message.getAction().equals("save")){
-                    dbClient.savePerson(message.getPerson().getId(),
-                            message.getPerson().getName(),
-                            message.getPerson().getLastName(),
-                            message.getPerson().getLastName());
-
-                } else if (message.getAction().equals("delete")) {
-                    dbClient.deletePerson(message.getPerson().getId());
-                }
+                message = new ObjectMapper().readValue(json, Message.class);
             }
         } catch (IOException ex) {
             LOG.log(Level.WARNING, ex.getMessage());
+            return message;
         } catch (TimeoutException ex) {
             LOG.log(Level.WARNING, ex.getMessage());
+            return message;
         }
+        return message;
     }
 }
