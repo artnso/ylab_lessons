@@ -1,31 +1,18 @@
 package io.ylab.intensive.lesson05.eventsourcing.db;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rabbitmq.client.BuiltinExchangeType;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.DeliverCallback;
-import io.ylab.intensive.lesson05.eventsourcing.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Component
-public class DBExecutorImpl implements DBExecutor {
+public class DbClient {
     private final DataSource dataSource;
-    private final ConnectionFactory connectionFactory;
-
-    private final String EXCHANGE_NAME = "exc";
-    private final String QUEUE_NAME = "queue";
-    private final String DIRECT_KEY = "direct";
 
     private final Logger LOG = Logger.getAnonymousLogger();
 
@@ -37,12 +24,11 @@ public class DBExecutorImpl implements DBExecutor {
     }
 
     @Autowired
-    public DBExecutorImpl(DataSource dataSource, ConnectionFactory connectionFactory) {
+    public DbClient(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.connectionFactory = connectionFactory;
     }
 
-    private void deletePerson(Long id) {
+    public void deletePerson(Long id) {
         String query = "delete from person where person_id = ?;";
         try {
             if (!containsPerson(id)) {
@@ -56,7 +42,7 @@ public class DBExecutorImpl implements DBExecutor {
         }
     }
 
-    private void savePerson(Long personId, String firstName, String lastName, String middleName) {
+    public void savePerson(Long personId, String firstName, String lastName, String middleName) {
         String query_insert = "insert into person (first_name, last_name, middle_name, person_id) values (?, ?, ?, ?);";
         String query_update = "update person set first_name = ?," +
                 " last_name = ?, middle_name = ? where person_id = ?;";
@@ -122,41 +108,5 @@ public class DBExecutorImpl implements DBExecutor {
             }
         }
         return result;
-    }
-
-    @Override
-    public void doExecute(){
-        try {
-            com.rabbitmq.client.Connection connection = this.connectionFactory.newConnection();
-            Channel channel = connection.createChannel();
-            channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
-            channel.queueDeclare(QUEUE_NAME, true, false, false, null);
-            channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, DIRECT_KEY);
-
-            boolean autoAck = true;
-            LOG.log(Level.INFO, " [x] Start listening queue...");
-            channel.basicConsume(QUEUE_NAME, autoAck, this.deliverCallback(), consumerTag -> {});
-
-        } catch (TimeoutException ex) {
-            LOG.log(Level.WARNING, ex.getMessage());
-        } catch (IOException ex) {
-            LOG.log(Level.WARNING, ex.getMessage());
-        }
-    }
-
-    private DeliverCallback deliverCallback() {
-        return (consumerTag, delivery) -> {
-            String json = new String(delivery.getBody());
-            Message message = new ObjectMapper().readValue(json, Message.class);
-            if (message.getAction().equals("save")){
-                savePerson(message.getPerson().getId(),
-                        message.getPerson().getName(),
-                        message.getPerson().getLastName(),
-                        message.getPerson().getLastName());
-
-            } else if (message.getAction().equals("delete")) {
-                deletePerson(message.getPerson().getId());
-            }
-        };
     }
 }

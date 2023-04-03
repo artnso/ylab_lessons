@@ -7,7 +7,7 @@ public class DbApp {
     AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(Config.class);
     applicationContext.start();
     // тут пишем создание и запуск приложения работы с БД
-    DBExecutor executor = applicationContext.getBean(DBExecutor.class);
-    executor.doExecute();
+    MessageProcessor messageProcessor = applicationContext.getBean(MessageProcessor.class);
+    messageProcessor.start();
   }
 }
