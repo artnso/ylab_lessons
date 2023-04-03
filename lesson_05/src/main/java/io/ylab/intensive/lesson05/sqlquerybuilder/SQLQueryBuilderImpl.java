@@ -9,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Component
 public class SQLQueryBuilderImpl implements SQLQueryBuilder{
@@ -22,7 +24,8 @@ public class SQLQueryBuilderImpl implements SQLQueryBuilder{
     private String buildQueryString(List<String> columns, String tableName) {
         String result;
         if (columns.size() == 0) {
-            result = "Таблица " + tableName + " не содежит столбцов";
+            Logger.getAnonymousLogger().log(Level.INFO, "Таблица " + tableName + " не содежит столбцов");
+            result = null;
         } else {
             StringBuilder sb = new StringBuilder("select ");
             for (int i = 0; i < columns.size(); i++) {
