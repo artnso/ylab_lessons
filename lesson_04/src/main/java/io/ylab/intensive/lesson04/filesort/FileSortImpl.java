@@ -62,6 +62,7 @@ public class FileSortImpl implements FileSorter {
           preparedStatement.executeBatch();
           batchCounter = 0;
         }
+        preparedStatement.executeBatch();
       }
     }
   }
